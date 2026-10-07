@@ -1,0 +1,26 @@
+# 依赖与构建
+node_modules/
+dist/
+*.tsbuildinfo
+
+# 开发调试产物（根目录临时脚本/截图）
+/*.cjs
+/_*.png
+/reference-*.html
+/reference-*.mp4
+/reference-*.png
+*.bak
+
+# 素材备份/参考模型（已放入 public 的 room.glb 除外）
+/夜间装扮.glb
+/模型.glb
+/music_room_cabinet_fit_v4.glb
+
+# ��ʱ������
+/.browser-check/
+/.cabinet-browser-check/
+/.cabinet-browser-check2/
+/.cabinet-check-software/
+/.cabinet-video-check/
+/.workbuddy/
+/*-check.png

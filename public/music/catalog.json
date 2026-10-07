@@ -1,0 +1,471 @@
+{
+  "version": 1,
+  "tracks": [
+    {
+      "id": "track-01",
+      "title": "CANDY",
+      "artist": "TWICE",
+      "audioUrl": "/music/audio/track-01.mp3",
+      "sourceFile": "Twice-CANDY.mp3"
+    },
+    {
+      "id": "track-02",
+      "title": "Cheer Up",
+      "artist": "TWICE",
+      "audioUrl": "/music/audio/track-02.mp3",
+      "sourceFile": "Twice-Cheer Up.mp3"
+    },
+    {
+      "id": "track-03",
+      "title": "Conversation",
+      "artist": "TWICE",
+      "audioUrl": "/music/audio/track-03.mp3",
+      "sourceFile": "Twice-Conversation.mp3"
+    },
+    {
+      "id": "track-04",
+      "title": "Feel Special",
+      "artist": "TWICE",
+      "audioUrl": "/music/audio/track-04.mp3",
+      "sourceFile": "Twice-Feel Special.mp3"
+    },
+    {
+      "id": "track-05",
+      "title": "Happy Happy",
+      "artist": "TWICE",
+      "audioUrl": "/music/audio/track-05.mp3",
+      "sourceFile": "Twice-Happy Happy.mp3"
+    },
+    {
+      "id": "track-06",
+      "title": "Heart Shaker",
+      "artist": "TWICE",
+      "audioUrl": "/music/audio/track-06.mp3",
+      "sourceFile": "Twice-Heart Shaker.mp3"
+    },
+    {
+      "id": "track-07",
+      "title": "MORE & MORE",
+      "artist": "TWICE",
+      "audioUrl": "/music/audio/track-07.mp3",
+      "sourceFile": "Twice-MORE & MORE.mp3"
+    },
+    {
+      "id": "track-08",
+      "title": "One More Time",
+      "artist": "TWICE",
+      "audioUrl": "/music/audio/track-08.mp3",
+      "sourceFile": "Twice-One More Time.mp3"
+    },
+    {
+      "id": "track-09",
+      "title": "The Feels",
+      "artist": "TWICE",
+      "audioUrl": "/music/audio/track-09.mp3",
+      "sourceFile": "Twice-The Feels.mp3"
+    },
+    {
+      "id": "track-10",
+      "title": "Armageddon",
+      "artist": "aespa",
+      "audioUrl": "/music/audio/track-10.mp3",
+      "sourceFile": "aespa+-+Armageddon.mp3"
+    },
+    {
+      "id": "track-11",
+      "title": "Black Mamba",
+      "artist": "aespa",
+      "audioUrl": "/music/audio/track-11.mp3",
+      "sourceFile": "aespa+-+Black+Mamba.mp3"
+    },
+    {
+      "id": "track-12",
+      "title": "Drama",
+      "artist": "aespa",
+      "audioUrl": "/music/audio/track-12.mp3",
+      "sourceFile": "aespa+-+Drama.mp3"
+    },
+    {
+      "id": "track-13",
+      "title": "Girls",
+      "artist": "aespa",
+      "audioUrl": "/music/audio/track-13.mp3",
+      "sourceFile": "aespa+-+Girls.mp3"
+    },
+    {
+      "id": "track-14",
+      "title": "LEMONADE",
+      "artist": "aespa",
+      "audioUrl": "/music/audio/track-14.mp3",
+      "sourceFile": "aespa+-+LEMONADE.mp3"
+    },
+    {
+      "id": "track-15",
+      "title": "Next Level",
+      "artist": "aespa",
+      "audioUrl": "/music/audio/track-15.mp3",
+      "sourceFile": "aespa+-+Next+Level.mp3"
+    },
+    {
+      "id": "track-16",
+      "title": "Rich Man",
+      "artist": "aespa",
+      "audioUrl": "/music/audio/track-16.mp3",
+      "sourceFile": "aespa+-+Rich+Man.mp3"
+    },
+    {
+      "id": "track-17",
+      "title": "Spicy",
+      "artist": "aespa",
+      "audioUrl": "/music/audio/track-17.mp3",
+      "sourceFile": "aespa+-+Spicy.mp3"
+    },
+    {
+      "id": "track-18",
+      "title": "Whiplash",
+      "artist": "aespa",
+      "audioUrl": "/music/audio/track-18.mp3",
+      "sourceFile": "aespa+-+Whiplash.mp3"
+    }
+  ],
+  "playlists": [
+    {
+      "id": "electric",
+      "title": "霓虹开场",
+      "placement": "wall",
+      "position": 0,
+      "coverUrl": "/music/covers/electric.jpg",
+      "sourceCover": "【aespa】高清专辑封面（三）⚡️💸⛓️🔐📸_1_Redrest_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-16",
+        "track-18",
+        "track-12",
+        "track-13",
+        "track-10"
+      ]
+    },
+    {
+      "id": "summer",
+      "title": "夏日气泡",
+      "placement": "wall",
+      "position": 1,
+      "coverUrl": "/music/covers/summer.jpg",
+      "sourceCover": "四本部家的美工可以骑着四本部上班_11_Em0_0_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-05",
+        "track-02",
+        "track-06",
+        "track-17",
+        "track-14"
+      ]
+    },
+    {
+      "id": "pink",
+      "title": "心动循环",
+      "placement": "wall",
+      "position": 2,
+      "coverUrl": "/music/covers/pink.jpg",
+      "sourceCover": "KPOP专辑封面丨视觉分享1_7_美式西柚冰_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-09",
+        "track-04",
+        "track-01",
+        "track-03",
+        "track-07"
+      ]
+    },
+    {
+      "id": "future",
+      "title": "未来来信",
+      "placement": "wall",
+      "position": 3,
+      "coverUrl": "/music/covers/future.jpg",
+      "sourceCover": "【aespa】高清专辑封面（一）🌌🧬⚙💿️🐍_9_Redrest_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-15",
+        "track-11",
+        "track-10",
+        "track-13"
+      ]
+    },
+    {
+      "id": "city",
+      "title": "城市漫游",
+      "placement": "wall",
+      "position": 4,
+      "coverUrl": "/music/covers/city.jpg",
+      "sourceCover": "aespa歌曲封面1.0_14_Jennmie_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-18",
+        "track-03",
+        "track-14",
+        "track-09",
+        "track-08",
+        "track-15"
+      ]
+    },
+    {
+      "id": "bloom",
+      "title": "好心情收集册",
+      "placement": "wall",
+      "position": 5,
+      "coverUrl": "/music/covers/bloom.jpg",
+      "sourceCover": "四本部家的美工可以骑着四本部上班_13_Em0_0_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-02",
+        "track-05",
+        "track-06",
+        "track-08",
+        "track-01",
+        "track-04"
+      ]
+    },
+    {
+      "id": "stage",
+      "title": "主场时刻",
+      "placement": "wall",
+      "position": 6,
+      "coverUrl": "/music/covers/stage.jpg",
+      "sourceCover": "BLACKPINK SOLO专辑封面_1_Daisy__来自小红书网页版.jpg",
+      "trackIds": [
+        "track-12",
+        "track-16",
+        "track-17",
+        "track-11",
+        "track-07"
+      ]
+    },
+    {
+      "id": "favorites",
+      "title": "我的反复播放",
+      "placement": "wall",
+      "position": 7,
+      "coverUrl": "/music/covers/favorites.jpg",
+      "sourceCover": "aespa歌曲封面1.0_2_Jennmie_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-18",
+        "track-09",
+        "track-12",
+        "track-04",
+        "track-15",
+        "track-02",
+        "track-10",
+        "track-06",
+        "track-14",
+        "track-03",
+        "track-17",
+        "track-01"
+      ]
+    },
+    {
+      "id": "sound-lab",
+      "title": "声音实验室",
+      "placement": "wall",
+      "position": 8,
+      "coverUrl": "/music/covers/sound-lab.jpg",
+      "sourceCover": "四本部家的美工可以骑着四本部上班_5_Em0_0_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-15",
+        "track-13",
+        "track-10",
+        "track-07",
+        "track-03"
+      ]
+    },
+    {
+      "id": "collection-01",
+      "title": "夜色留声",
+      "placement": "cabinet",
+      "position": 9,
+      "coverUrl": "/music/covers/collection-01.jpg",
+      "sourceCover": "16789fd74991930d1f4e6998ce91aba6.jpg",
+      "trackIds": [
+        "track-04",
+        "track-06",
+        "track-08",
+        "track-10",
+        "track-12"
+      ]
+    },
+    {
+      "id": "collection-02",
+      "title": "周末来电",
+      "placement": "cabinet",
+      "position": 10,
+      "coverUrl": "/music/covers/collection-02.jpg",
+      "sourceCover": "33f0e43836e42159c329d8601a1362be.jpg",
+      "trackIds": [
+        "track-07",
+        "track-09",
+        "track-11",
+        "track-13",
+        "track-15"
+      ]
+    },
+    {
+      "id": "collection-03",
+      "title": "微醺频道",
+      "placement": "cabinet",
+      "position": 11,
+      "coverUrl": "/music/covers/collection-03.jpg",
+      "sourceCover": "3b9acc885818c66e882e20aaa342f23b.jpg",
+      "trackIds": [
+        "track-10",
+        "track-12",
+        "track-14",
+        "track-16",
+        "track-18"
+      ]
+    },
+    {
+      "id": "collection-04",
+      "title": "心跳频率",
+      "placement": "cabinet",
+      "position": 12,
+      "coverUrl": "/music/covers/collection-04.jpg",
+      "sourceCover": "4f47bebf3fb8a5f1993573c67439832c.jpg",
+      "trackIds": [
+        "track-13",
+        "track-15",
+        "track-17",
+        "track-01",
+        "track-03"
+      ]
+    },
+    {
+      "id": "collection-05",
+      "title": "自由放映",
+      "placement": "cabinet",
+      "position": 13,
+      "coverUrl": "/music/covers/collection-05.jpg",
+      "sourceCover": "55cbe4b00958126c87be3556b963a209.jpg",
+      "trackIds": [
+        "track-16",
+        "track-18",
+        "track-02",
+        "track-04",
+        "track-06"
+      ]
+    },
+    {
+      "id": "collection-06",
+      "title": "闪光日记",
+      "placement": "cabinet",
+      "position": 14,
+      "coverUrl": "/music/covers/collection-06.jpg",
+      "sourceCover": "644c3257b1e147ec52c5e1c76002dae9.jpg",
+      "trackIds": [
+        "track-01",
+        "track-03",
+        "track-05",
+        "track-07",
+        "track-09"
+      ]
+    },
+    {
+      "id": "collection-07",
+      "title": "午夜列车",
+      "placement": "cabinet",
+      "position": 15,
+      "coverUrl": "/music/covers/collection-07.jpg",
+      "sourceCover": "86edfcbbf53ce95f5e405718b8507018.jpg",
+      "trackIds": [
+        "track-04",
+        "track-06",
+        "track-08",
+        "track-10",
+        "track-12"
+      ]
+    },
+    {
+      "id": "collection-08",
+      "title": "甜蜜回声",
+      "placement": "cabinet",
+      "position": 16,
+      "coverUrl": "/music/covers/collection-08.jpg",
+      "sourceCover": "aespa歌曲封面1.0_9_Jennmie_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-07",
+        "track-09",
+        "track-11",
+        "track-13",
+        "track-15"
+      ]
+    },
+    {
+      "id": "collection-09",
+      "title": "耳边宇宙",
+      "placement": "cabinet",
+      "position": 17,
+      "coverUrl": "/music/covers/collection-09.jpg",
+      "sourceCover": "cb0aea655e5d6d0697b4bc89cf8204ac.jpg",
+      "trackIds": [
+        "track-10",
+        "track-12",
+        "track-14",
+        "track-16",
+        "track-18"
+      ]
+    },
+    {
+      "id": "collection-10",
+      "title": "假日序曲",
+      "placement": "cabinet",
+      "position": 18,
+      "coverUrl": "/music/covers/collection-10.jpg",
+      "sourceCover": "e696aa57075e07c0aa7bcc7f954a4fe2.jpg",
+      "trackIds": [
+        "track-13",
+        "track-15",
+        "track-17",
+        "track-01",
+        "track-03"
+      ]
+    },
+    {
+      "id": "collection-11",
+      "title": "随身舞台",
+      "placement": "cabinet",
+      "position": 19,
+      "coverUrl": "/music/covers/collection-11.jpg",
+      "sourceCover": "f8115b559ada96dd0d8ffc3a297f6f03.jpg",
+      "trackIds": [
+        "track-16",
+        "track-18",
+        "track-02",
+        "track-04",
+        "track-06"
+      ]
+    },
+    {
+      "id": "collection-12",
+      "title": "私藏片段",
+      "placement": "cabinet",
+      "position": 20,
+      "coverUrl": "/music/covers/collection-12.jpg",
+      "sourceCover": "那些我喜欢的专辑封面（KPOP篇）_4_Nancy_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-01",
+        "track-03",
+        "track-05",
+        "track-07",
+        "track-09"
+      ]
+    },
+    {
+      "id": "collection-13",
+      "title": "慢速浪漫",
+      "placement": "cabinet",
+      "position": 21,
+      "coverUrl": "/music/covers/collection-13.jpg",
+      "sourceCover": "那些我喜欢的专辑封面（KPOP篇）_7_Nancy_来自小红书网页版.jpg",
+      "trackIds": [
+        "track-04",
+        "track-06",
+        "track-08",
+        "track-10",
+        "track-12"
+      ]
+    }
+  ]
+}
