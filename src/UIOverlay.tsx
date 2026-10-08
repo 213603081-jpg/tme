@@ -432,7 +432,7 @@ export default function UIOverlay({ colors, onColor, children, decorGuideActive,
           height: 7px;
         }
       `}</style>
-      <div className="bottom-dock">
+      <div className={`bottom-dock${open ? ' is-decor-open' : ''}`}>
       {children}
       {/* 悬浮编辑按钮 - 白色液态玻璃 */}
       <button
@@ -450,7 +450,7 @@ export default function UIOverlay({ colors, onColor, children, decorGuideActive,
           cursor: "pointer",
           pointerEvents: "auto",
           transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          display: open ? "none" : "flex", alignItems: "center", justifyContent: "center",
         }}
       >
         <svg width="26" height="26" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 44C29.9601 44 26.3359 35.136 30 31C33.1264 27.4709 44 29.0856 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" fill="currentColor"/><path d="M28 17C29.6569 17 31 15.6569 31 14C31 12.3431 29.6569 11 28 11C26.3431 11 25 12.3431 25 14C25 15.6569 26.3431 17 28 17Z" fill="#FFF"/><path d="M16 21C17.6569 21 19 19.6569 19 18C19 16.3431 17.6569 15 16 15C14.3431 15 13 16.3431 13 18C13 19.6569 14.3431 21 16 21Z" fill="#FFF"/><path d="M17 34C18.6569 34 20 32.6569 20 31C20 29.3431 18.6569 28 17 28C15.3431 28 14 29.3431 14 31C14 32.6569 15.3431 34 17 34Z" fill="#FFF"/></svg>
@@ -481,7 +481,7 @@ export default function UIOverlay({ colors, onColor, children, decorGuideActive,
       {/* Bottom Sheet */}
       <div
         style={{
-          position: 'absolute', left: 0, right: 0, bottom: open ? 104 : 0,
+          position: 'absolute', left: 0, right: 0, bottom: 0,
           transform: open ? 'translateY(0)' : 'translateY(105%)',
           transition: 'transform 0.45s cubic-bezier(0.32,0.72,0,1)',
           pointerEvents: 'auto',
@@ -492,7 +492,7 @@ export default function UIOverlay({ colors, onColor, children, decorGuideActive,
           style={{
             maxWidth: 700, margin: '0 auto',
             borderRadius: '28px 28px 0 0',
-            padding: '10px 32px 24px',
+            padding: '10px 32px calc(24px + env(safe-area-inset-bottom, 0px))',
           }}
         >
           {/* 拖拽条 */}
@@ -889,6 +889,7 @@ export default function UIOverlay({ colors, onColor, children, decorGuideActive,
           background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 55%);
           pointer-events:none;
         }
+        .bottom-dock.is-decor-open .music-player { display: none; }
         .lg-panel {
           background: var(--glass-bg);
           backdrop-filter: blur(30px) saturate(125%);
