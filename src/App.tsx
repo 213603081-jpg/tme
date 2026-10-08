@@ -96,7 +96,7 @@ function RoomOverlay({ colors, onColor }: { colors: Record<string, string>; onCo
   const [ready, setReady] = useState(false)
   const [guide, setGuide] = useState<'shelf' | 'decor' | null>(() => {
     try {
-      if (music.shelf.slots.every(id => !id) && localStorage.getItem('soundroom-shelf-guide-v1') !== 'done') return 'shelf'
+      if (music.shelf.slots.every(id => !id)) return 'shelf'
       return localStorage.getItem('soundroom-decor-guide-v2') === 'done' ? null : 'decor'
     } catch { return music.shelf.slots.every(id => !id) ? 'shelf' : 'decor' }
   })
@@ -104,7 +104,6 @@ function RoomOverlay({ colors, onColor }: { colors: Record<string, string>; onCo
   if (!ready) return null
   const visibleGuide = active ? null : guide
   const dismissShelfGuide = () => {
-    try { localStorage.setItem('soundroom-shelf-guide-v1', 'done') } catch {}
     try { setGuide(localStorage.getItem('soundroom-decor-guide-v2') === 'done' ? null : 'decor') }
     catch { setGuide('decor') }
   }
