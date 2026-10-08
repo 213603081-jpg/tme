@@ -12,6 +12,47 @@ import { useThree, useFrame } from '@react-three/fiber'
 // wall: 后墙 BackWall_Main + 右墙 LeftWall（百叶窗用 Mat_Blinds，不受影响）
 // cabinet: 柜体主体(深蓝拉丝金属) + 抽屉门(抽屉面板蓝)
 const SKIN_KEY = 'soundroom-skin'
+const FLOOR_TEXTURE_PATHS: Record<string, string> = {
+  wood_floor: '/textures/floor/wood_floor.png', parquet: '/textures/floor/parquet.png',
+  marble: '/textures/floor/marble.png', diamond: '/textures/floor/diamond.png',
+  herringbone: '/textures/floor/herringbone.png', marble_white: '/textures/floor/marble_white.png',
+  checker: '/textures/floor/checker.png', checker_pink: '/textures/floor/checker_pink.png',
+}
+const floorTextureCache: Record<string, THREE.Texture> = {}
+const floorTextureLoads = new Map<string, Promise<THREE.Texture | null>>()
+
+function floorNameFromValue(value?: string) {
+  const name = value?.startsWith('texture:') ? value.slice('texture:'.length) : ''
+  return FLOOR_TEXTURE_PATHS[name] ? name : 'wood_floor'
+}
+
+function configureFloorTexture(texture: THREE.Texture) {
+  texture.wrapS = THREE.RepeatWrapping
+  texture.wrapT = THREE.RepeatWrapping
+  texture.repeat.set(6, 4)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 8
+}
+
+function loadFloorTexture(name: string) {
+  if (floorTextureCache[name]) return Promise.resolve(floorTextureCache[name])
+  const existing = floorTextureLoads.get(name)
+  if (existing) return existing
+  const path = FLOOR_TEXTURE_PATHS[name]
+  if (!path) return Promise.resolve(null)
+  const load = new Promise<THREE.Texture | null>(resolve => {
+    // Keep on-demand texture requests out of drei's global loading progress so
+    // using a floor option never reopens the full-screen startup loader.
+    const manager = new THREE.LoadingManager()
+    new THREE.TextureLoader(manager).load(path, texture => {
+      configureFloorTexture(texture)
+      floorTextureCache[name] = texture
+      resolve(texture)
+    }, undefined, () => resolve(null))
+  }).finally(() => floorTextureLoads.delete(name))
+  floorTextureLoads.set(name, load)
+  return load
+}
 
 // 读取浏览器本地的装扮颜色
 function readSkin(): Record<string, string> {
@@ -59,17 +100,29 @@ function applyWallColor(mm: THREE.MeshStandardMaterial, value: string) {
 }
 
 // 给地板材质应用一种"装扮值"：texture:xxx 贴图（平铺）或纯色
-function applyFloorMat(mm: THREE.MeshStandardMaterial, value: string, floorTexes?: Record<string, THREE.Texture>) {
+function applyFloorMat(mm: THREE.MeshStandardMaterial, value: string) {
   if (value && value.startsWith('texture:')) {
     const name = value.slice('texture:'.length)
-    const t = floorTexes && floorTexes[name]
+    const t = floorTextureCache[name]
     if (t) {
+      delete mm.userData.requestedFloorTexture
       mm.map = t
       mm.color.set('#ffffff')
       mm.needsUpdate = true
       return
     }
+    if (FLOOR_TEXTURE_PATHS[name]) {
+      mm.userData.requestedFloorTexture = name
+      void loadFloorTexture(name).then(texture => {
+        if (!texture || mm.userData.requestedFloorTexture !== name) return
+        mm.map = texture
+        mm.color.set('#ffffff')
+        mm.needsUpdate = true
+      })
+      return
+    }
   }
+  delete mm.userData.requestedFloorTexture
   if (mm.map) mm.map = null
   mm.color.set(value && value.startsWith('#') ? value : '#aeb6bc')
   mm.needsUpdate = true
@@ -79,7 +132,6 @@ function applyFloorMat(mm: THREE.MeshStandardMaterial, value: string, floorTexes
 function applySkinToScene(
   root: THREE.Object3D,
   colors: Record<string, string>,
-  floorTexes?: Record<string, THREE.Texture>,
 ) {
   root.traverse((object) => {
     const o = object as THREE.Mesh
@@ -115,7 +167,7 @@ function applySkinToScene(
           mm.color.set(cab.accent)
         }
       }
-      if (colors.floor && mm.name === 'Mat_Floor_Concrete') applyFloorMat(mm, colors.floor, floorTexes)
+      if (colors.floor && mm.name === 'Mat_Floor_Concrete') applyFloorMat(mm, colors.floor)
     })
   })
 }
@@ -315,6 +367,10 @@ function restoreVinylPlain(mesh: THREE.Mesh) {
 function RoomModel({ mode }: { mode: 'day' | 'night' }) {
   const { focus, bounds: cameraBounds } = useCameraView()
   const { scene } = useGLTF(mode === 'night' ? '/room-night.glb' : '/room.glb')
+  const initialFloorName = useRef(floorNameFromValue((window as any).__skinColors?.floor)).current
+  const initialFloorTexture = useTexture(FLOOR_TEXTURE_PATHS[initialFloorName])
+  configureFloorTexture(initialFloorTexture)
+  floorTextureCache[initialFloorName] = initialFloorTexture
 
   // 预加载地毯贴图（白色毛绒，平铺）
   const rugTex = useTexture('/textures/rug/fur.png')
@@ -323,28 +379,6 @@ function RoomModel({ mode }: { mode: 'day' | 'night' }) {
   rugTex.repeat.set(2, 2)
   rugTex.colorSpace = THREE.SRGBColorSpace
   rugTex.anisotropy = 8
-
-  // 预加载地板贴图并配置平铺（供「地板」Tab 切换）
-  const fWood = useTexture('/textures/floor/wood_floor.png')
-  const fParquet = useTexture('/textures/floor/parquet.png')
-  const fMarble = useTexture('/textures/floor/marble.png')
-  const fDiamond = useTexture('/textures/floor/diamond.png')
-  const fHerringbone = useTexture('/textures/floor/herringbone.png')
-  const fMarbleWhite = useTexture('/textures/floor/marble_white.png')
-  const fChecker = useTexture('/textures/floor/checker.png')
-  const fCheckerPink = useTexture('/textures/floor/checker_pink.png')
-  ;[fWood, fParquet, fMarble, fDiamond, fHerringbone, fMarbleWhite, fChecker, fCheckerPink].forEach((t) => {
-    t.wrapS = THREE.RepeatWrapping
-    t.wrapT = THREE.RepeatWrapping
-    t.repeat.set(6, 4)
-    t.colorSpace = THREE.SRGBColorSpace
-    t.anisotropy = 8
-  })
-  const floorTexes = {
-    wood_floor: fWood, parquet: fParquet, marble: fMarble,
-    diamond: fDiamond, herringbone: fHerringbone,
-    marble_white: fMarbleWhite, checker: fChecker, checker_pink: fCheckerPink,
-  }
 
   // 克隆模型，设置基础材质（百叶窗白、玻璃半透明、阴影过滤）+ 应用当前装扮
   const cloned = useMemo(() => {
@@ -482,7 +516,7 @@ function RoomModel({ mode }: { mode: 'day' | 'night' }) {
 
         // 木地板贴图：按当前地板装扮值应用（贴图平铺或纯色）
         if (mat.name === 'Mat_Floor_Concrete') {
-          applyFloorMat(mat, skin.floor || 'texture:wood_floor', floorTexes)
+          applyFloorMat(mat, skin.floor || 'texture:wood_floor')
         }
       }
     })
@@ -521,7 +555,7 @@ function RoomModel({ mode }: { mode: 'day' | 'night' }) {
     })
     cabinetPlaceholders.forEach(o => o.removeFromParent())
     return c
-  }, [scene, rugTex, fWood, fParquet, fMarble, fDiamond, fHerringbone, fMarbleWhite, fChecker, fCheckerPink, mode])
+  }, [scene, rugTex, initialFloorTexture, mode])
 
   return <><primitive object={cloned} onClick={(e: import('@react-three/fiber').ThreeEvent<MouseEvent>) => {
     if (e.delta > 6) return
@@ -792,7 +826,7 @@ export default function Scene() {
       try {
         const canvas = gl.domElement
         const colors = (window as any).__skinColors || {}
-        applySkinToScene(r3fScene, colors, floorTexes)
+        applySkinToScene(r3fScene, colors)
         if (colors.poster) applyPosterToScene(r3fScene, colors.poster)
         gl.setSize(previewWidth, previewHeight, false)
         cam.aspect = previewWidth / previewHeight
@@ -873,28 +907,6 @@ export default function Scene() {
 
   const p = SCENE_PRESETS[mode]
 
-  // 地板贴图（与 RoomModel 同路径，three 缓存同一实例）
-  const fWood = useTexture('/textures/floor/wood_floor.png')
-  const fParquet = useTexture('/textures/floor/parquet.png')
-  const fMarble = useTexture('/textures/floor/marble.png')
-  const fDiamond = useTexture('/textures/floor/diamond.png')
-  const fHerringbone = useTexture('/textures/floor/herringbone.png')
-  const fMarbleWhite = useTexture('/textures/floor/marble_white.png')
-  const fChecker = useTexture('/textures/floor/checker.png')
-  const fCheckerPink = useTexture('/textures/floor/checker_pink.png')
-  ;[fWood, fParquet, fMarble, fDiamond, fHerringbone, fMarbleWhite, fChecker, fCheckerPink].forEach((t) => {
-    t.wrapS = THREE.RepeatWrapping
-    t.wrapT = THREE.RepeatWrapping
-    t.repeat.set(6, 4)
-    t.colorSpace = THREE.SRGBColorSpace
-    t.anisotropy = 8
-  })
-  const floorTexes = {
-    wood_floor: fWood, parquet: fParquet, marble: fMarble,
-    diamond: fDiamond, herringbone: fHerringbone,
-    marble_white: fMarbleWhite, checker: fChecker, checker_pink: fCheckerPink,
-  }
-
   // 渲染循环里检测装扮颜色变化（颜色对象引用变化即应用，不依赖版本号，避免点击时序）
   const lastColors = useRef<any>(null)
   useEffect(() => { lastColors.current = null }, [mode])
@@ -904,7 +916,7 @@ export default function Scene() {
     const colors = (window as any).__skinColors || {}
     if (colors === lastColors.current) return
     lastColors.current = colors
-    applySkinToScene(r3fScene, colors, floorTexes)
+    applySkinToScene(r3fScene, colors)
     // 海报贴图（独立处理，因为涉及运行时纹理创建）
     if (colors.poster) applyPosterToScene(r3fScene, colors.poster)
   })
