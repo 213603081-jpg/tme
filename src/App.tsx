@@ -97,18 +97,17 @@ function RoomOverlay({ colors, onColor }: { colors: Record<string, string>; onCo
   const [guide, setGuide] = useState<'shelf' | 'decor' | null>(() => {
     try {
       if (music.shelf.slots.every(id => !id)) return 'shelf'
-      return localStorage.getItem('soundroom-decor-guide-v2') === 'done' ? null : 'decor'
+      return localStorage.getItem('soundroom-decor-used-v1') === 'done' ? null : 'decor'
     } catch { return music.shelf.slots.every(id => !id) ? 'shelf' : 'decor' }
   })
   useEffect(() => { if (!active && progress >= 100) setReady(true) }, [active, progress])
   if (!ready) return null
   const visibleGuide = active ? null : guide
   const dismissShelfGuide = () => {
-    try { setGuide(localStorage.getItem('soundroom-decor-guide-v2') === 'done' ? null : 'decor') }
+    try { setGuide(localStorage.getItem('soundroom-decor-used-v1') === 'done' ? null : 'decor') }
     catch { setGuide('decor') }
   }
   const dismissDecorGuide = () => {
-    try { localStorage.setItem('soundroom-decor-guide-v2', 'done') } catch {}
     setGuide(null)
   }
   return <UIOverlay colors={colors} onColor={onColor} decorGuideActive={visibleGuide === 'decor'} onDismissDecorGuide={dismissDecorGuide}>
@@ -133,6 +132,7 @@ export default function App() {
     // 同步更新 window 全局（先于 setState，避免渲染循环读到旧颜色）
     const next = { ...((window as any).__skinColors || {}), [key]: c }
     localStorage.setItem(SKIN_KEY, JSON.stringify(next))
+    try { localStorage.setItem('soundroom-decor-used-v1', 'done') } catch {}
     ;(window as any).__skinColors = next
     ;(window as any).__skinVer = ((window as any).__skinVer || 0) + 1
     setColors(next)
