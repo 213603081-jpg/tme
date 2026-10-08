@@ -17,7 +17,7 @@ function usePlayer() {
   const audio = useRef<HTMLAudioElement | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout>>()
   const generation = useRef(0)
-  const equalizer = useRef<{ context: AudioContext; filter: BiquadFilterNode } | null>(null)
+  const equalizer = useRef<{ context: AudioContext; filter: BiquadFilterNode; playbackGain: GainNode } | null>(null)
   const feedback = useRef<PlayerFeedback | null>(null)
   const volumeStep = useRef(14)
   const toneStep = useRef(12)
@@ -28,8 +28,9 @@ function usePlayer() {
     if (!equalizer.current) {
       const context = new AudioContext()
       const filter = context.createBiquadFilter(); filter.type = 'highshelf'; filter.frequency.value = 2400
-      context.createMediaElementSource(audio.current).connect(filter); filter.connect(context.destination)
-      equalizer.current = { context, filter }
+      const playbackGain = context.createGain()
+      context.createMediaElementSource(audio.current).connect(filter); filter.connect(playbackGain); playbackGain.connect(context.destination)
+      equalizer.current = { context, filter, playbackGain }
       feedback.current = new PlayerFeedback(context)
     }
     void equalizer.current.context.resume()
@@ -61,6 +62,12 @@ function usePlayer() {
     const a = audio.current; if (!a) return
     const swapRecord = animate && current?.id !== p.id
     unlockAudio()
+    const playbackGain = equalizer.current?.playbackGain
+    if (playbackGain && equalizer.current) {
+      const now = equalizer.current.context.currentTime
+      playbackGain.gain.cancelScheduledValues(now)
+      playbackGain.gain.setValueAtTime(swapRecord ? 0 : 1, now)
+    }
     feedback.current?.cancel()
     const token = ++generation.current
     const startedAt = performance.now()
@@ -72,11 +79,22 @@ function usePlayer() {
     setSwitching(swapRecord); if (swapRecord) setTransition(v => v + 1)
     a.muted = swapRecord; a.src = playlistTracks(p)[next].audioUrl; a.playbackRate = rpm / 33
     // 在点击调用栈中请求播放，避免动画结束后丢失移动端播放授权。
-    void a.play().catch(() => { if (token === generation.current) { feedback.current?.cancel(); a.muted = false; setSwitching(false); setError('未能播放，请点击重试'); setPlaying(false) } })
+    void a.play().catch(() => { if (token === generation.current) {
+      feedback.current?.cancel(); a.muted = false
+      if (playbackGain && equalizer.current) playbackGain.gain.setValueAtTime(1, equalizer.current.context.currentTime)
+      setSwitching(false); setError('未能播放，请点击重试'); setPlaying(false)
+    } })
     const finishSwap = () => {
       if (token !== generation.current) return
       const replay = a.ended
-      a.currentTime = 0; a.muted = false; setSwitching(false); setPlaying(!a.paused)
+      a.currentTime = 0; a.muted = false
+      if (playbackGain && equalizer.current) {
+        const now = equalizer.current.context.currentTime
+        playbackGain.gain.cancelScheduledValues(now)
+        playbackGain.gain.setValueAtTime(0, now)
+        playbackGain.gain.linearRampToValueAtTime(1, now + 0.08)
+      }
+      setSwitching(false); setPlaying(!a.paused)
       // 短音频可能在静音换片期间已结束；落针后重新开始。
       if (replay) void a.play().catch(() => { if (token === generation.current) setError('未能播放，请点击重试') })
     }
