@@ -164,7 +164,7 @@ export default function MusicScene({ root, mode }: { root: THREE.Object3D; mode:
     {/* Reliable camera-facing hitbox for entering player close view; removed once focused so controls remain clickable. */}
     {!bounds && playerFocusTarget && <mesh
       position={[playerFocusTarget.center.x, playerFocusTarget.center.y, playerBounds!.max.z + 0.04]}
-      onClick={e => { e.stopPropagation(); if (e.delta < 6 && playerBounds) focus(playerBounds.clone(), 'player') }}
+      onClick={e => { if (e.delta < 6 && playerBounds) focus(playerBounds.clone(), 'player') }}
     >
       <boxGeometry args={[Math.max(playerFocusTarget.size.x, 0.1), Math.max(playerFocusTarget.size.y, 0.1), 0.02]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
