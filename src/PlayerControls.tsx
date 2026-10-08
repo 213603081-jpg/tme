@@ -15,24 +15,31 @@ const ARM_SKIP_DRAG_PIXELS = 8
 function Control({ object, kind }: { object: THREE.Mesh | THREE.Group; kind: string }) {
   const m = useMusic()
   const gl = useThree(s => s.gl)
-  const drag = useRef<{ id: number; x: number; y: number; value: number; rotation: number; playing: boolean; moved: boolean; radial: { x: number; y: number; angle: number } | null } | null>(null)
-  const clearArmListeners = useRef<(() => void) | null>(null)
+  const drag = useRef<{ id: number; x: number; y: number; value: number; rotation: number; playing: boolean; moved: boolean } | null>(null)
+  const clearPointerListeners = useRef<(() => void) | null>(null)
   const pressed = useRef(0)
   const armStart = useRef(0)
   useEffect(() => { if (kind === 'Reader_Arm' && m.switching) armStart.current = object.rotation.y }, [m.transition, kind, object])
   const base = useMemo(() => ({ position: object.position.clone(), rotation: object.rotation.clone() }), [object])
   const bounds = useMemo(() => {
-    // Volume_Knob 是 Group（含 Volume_Knob_Mesh 等子节点），取首个 mesh 子节点计算命中框
-    const mesh = (object as THREE.Mesh).isMesh
-      ? object as THREE.Mesh
-      : object.children.find((c): c is THREE.Mesh => (c as THREE.Mesh).isMesh)
-    if (!mesh) return { center: new THREE.Vector3(), size: new THREE.Vector3(0.15, 0.15, 0.15) }
-    mesh.geometry.computeBoundingBox()
-    const box = mesh.geometry.boundingBox!
-    const padding = kind === 'Reader_Arm' ? 0.05 : kind === 'Volume_Knob' || kind === 'EQ_Knob' ? 0.2 : 0.014
+    // 统一转换到控件局部坐标，保留压缩 GLB 子节点的位移、旋转和缩放。
+    object.updateWorldMatrix(true, true)
+    const inverse = object.matrixWorld.clone().invert()
+    const box = new THREE.Box3()
+    object.traverse(child => {
+      const mesh = child as THREE.Mesh
+      if (!mesh.isMesh || !mesh.geometry) return
+      mesh.geometry.computeBoundingBox()
+      if (mesh.geometry.boundingBox) {
+        const transform = new THREE.Matrix4().multiplyMatrices(inverse, mesh.matrixWorld)
+        box.union(mesh.geometry.boundingBox.clone().applyMatrix4(transform))
+      }
+    })
+    if (box.isEmpty()) return { center: new THREE.Vector3(), size: new THREE.Vector3(0.05, 0.05, 0.05) }
+    const padding = kind === 'Reader_Arm' ? 0.025 : kind.includes('Knob') ? 0.025 : 0.014
     return { center: box.getCenter(new THREE.Vector3()), size: box.getSize(new THREE.Vector3()).addScalar(padding) }
   }, [object, kind])
-  useEffect(() => () => { clearArmListeners.current?.(); object.position.copy(base.position); object.rotation.copy(base.rotation); gl.domElement.style.cursor = '' }, [object, base, gl])
+  useEffect(() => () => { clearPointerListeners.current?.(); object.position.copy(base.position); object.rotation.copy(base.rotation); gl.domElement.style.cursor = '' }, [object, base, gl])
   useFrame((_, dt) => {
     pressed.current = Math.max(0, pressed.current - dt)
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -67,8 +74,8 @@ function Control({ object, kind }: { object: THREE.Mesh | THREE.Group; kind: str
   const down = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
     if (kind === 'Reader_Arm' && m.switching) return
-    // 音量旋钮与音调旋钮统一使用线性拖拽（上下/左右拖动），不启用旋转模式。
-    const radial = null
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    // 音量和音调采用固定主方向的线性拖动。
     drag.current = {
       id: e.pointerId,
       x: e.clientX,
@@ -77,12 +84,48 @@ function Control({ object, kind }: { object: THREE.Mesh | THREE.Group; kind: str
       rotation: object.rotation.y,
       playing: m.playing,
       moved: false,
-      radial,
     }
     // 捕获到 Canvas 本身，确保鼠标/触摸拖出旋钮命中框后仍持续收到移动事件。
     gl.domElement.setPointerCapture(e.pointerId)
+    if (kind !== 'Reader_Arm') {
+      clearPointerListeners.current?.()
+      const start = drag.current!
+      let axis: 'x' | 'y' | null = null
+      const apply = (event: PointerEvent) => {
+        const dx = event.clientX - start.x, dy = start.y - event.clientY
+        if (Math.hypot(dx, dy) > 4) {
+          start.moved = true
+          if (!axis) axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+        }
+        if (!start.moved || !kind.includes('Knob')) return
+        // 一次手势固定主方向；向右/向上增加，避免对角拖动叠加或方向跳变。
+        const delta = (axis === 'x' ? dx : dy) / 160
+        if (kind === 'Volume_Knob') m.changeVolume(THREE.MathUtils.clamp(start.value + delta, 0, 1))
+        if (kind === 'EQ_Knob') m.changeTone(THREE.MathUtils.clamp(start.value + delta * 24, -12, 12))
+      }
+      const onMove = (event: PointerEvent) => {
+        if (event.pointerId !== start.id) return
+        event.preventDefault()
+        apply(event)
+      }
+      const onUp = (event: PointerEvent) => {
+        if (event.pointerId !== start.id) return
+        if (event.type !== 'pointercancel') apply(event)
+        clearPointerListeners.current?.(); clearPointerListeners.current = null; drag.current = null
+        if (gl.domElement.hasPointerCapture(event.pointerId)) gl.domElement.releasePointerCapture(event.pointerId)
+        if (event.type !== 'pointercancel' && !start.moved) activate()
+      }
+      gl.domElement.addEventListener('pointermove', onMove)
+      gl.domElement.addEventListener('pointerup', onUp)
+      gl.domElement.addEventListener('pointercancel', onUp)
+      clearPointerListeners.current = () => {
+        gl.domElement.removeEventListener('pointermove', onMove)
+        gl.domElement.removeEventListener('pointerup', onUp)
+        gl.domElement.removeEventListener('pointercancel', onUp)
+      }
+    }
     if (kind === 'Reader_Arm') {
-      clearArmListeners.current?.()
+      clearPointerListeners.current?.()
       const start = drag.current
       const onMove = (event: PointerEvent) => {
         if (event.pointerId !== start.id) return
@@ -92,7 +135,7 @@ function Control({ object, kind }: { object: THREE.Mesh | THREE.Group; kind: str
       }
       const onUp = (event: PointerEvent) => {
         if (event.pointerId !== start.id) return
-        clearArmListeners.current?.(); clearArmListeners.current = null; drag.current = null
+        clearPointerListeners.current?.(); clearPointerListeners.current = null; drag.current = null
         if (gl.domElement.hasPointerCapture(event.pointerId)) gl.domElement.releasePointerCapture(event.pointerId)
         if (event.type === 'pointercancel' || m.switching) return
         const dx = event.clientX - start.x
@@ -110,51 +153,15 @@ function Control({ object, kind }: { object: THREE.Mesh | THREE.Group; kind: str
       gl.domElement.addEventListener('pointermove', onMove)
       gl.domElement.addEventListener('pointerup', onUp)
       gl.domElement.addEventListener('pointercancel', onUp)
-      clearArmListeners.current = () => {
+      clearPointerListeners.current = () => {
         gl.domElement.removeEventListener('pointermove', onMove)
         gl.domElement.removeEventListener('pointerup', onUp)
         gl.domElement.removeEventListener('pointercancel', onUp)
       }
     }
   }
-  const volumeAt = (d: NonNullable<typeof drag.current>, x: number, y: number) => {
-    const dx = x - d.x, dy = y - d.y
-    if (d.radial) {
-      const rx = d.x - d.radial.x, ry = d.y - d.radial.y
-      const tangential = Math.abs(rx * dy - ry * dx)
-      const outward = Math.abs(rx * dx + ry * dy)
-      if (tangential >= outward * 0.65) {
-        const angle = Math.atan2(y - d.radial.y, x - d.radial.x)
-        const delta = Math.atan2(Math.sin(angle - d.radial.angle), Math.cos(angle - d.radial.angle))
-        return THREE.MathUtils.clamp(d.value + delta / (Math.PI * 1.5), 0, 1)
-      }
-    }
-    return THREE.MathUtils.clamp(d.value + (Math.abs(dx) > Math.abs(dy) ? dx : dy) / 90, 0, 1)
-  }
-  const move = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation()
-    if (kind === 'Reader_Arm') return
-    const d = drag.current; if (!d || d.id !== e.pointerId) return
-    const dx = e.clientX - d.x, dy = d.y - e.clientY
-    if (Math.hypot(dx, dy) > (kind === 'Reader_Arm' ? 3 : 6)) d.moved = true
-    if (kind === 'Volume_Knob') m.changeVolume(volumeAt(d, e.clientX, e.clientY))
-    if (kind === 'EQ_Knob') m.changeTone(THREE.MathUtils.clamp(d.value + (dx + dy) / 8, -12, 12))
-    if (kind === 'Reader_Arm') object.rotation.y = THREE.MathUtils.clamp(d.rotation + dx * ARM_DRAG_PER_PIXEL, base.rotation.y - ARM_DROP_ANGLE - ARM_TRACK_SWEEP, base.rotation.y + ARM_PARK_ANGLE)
-  }
-  const up = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation()
-    if (kind === 'Reader_Arm') return
-    const d = drag.current
-    if (!d || d.id !== e.pointerId) return
-    drag.current = null
-    if (gl.domElement.hasPointerCapture(e.pointerId)) gl.domElement.releasePointerCapture(e.pointerId)
-    const dx = e.clientX - d.x
-    const moved = d.moved || Math.hypot(dx, e.clientY - d.y) > (kind === 'Reader_Arm' ? 3 : 6)
-    if (kind === 'Volume_Knob' && moved) m.changeVolume(volumeAt(d, e.clientX, e.clientY))
-    if (!moved) activate()
-  }
-  return createPortal(<mesh position={bounds.center} onPointerDown={down} onPointerMove={move} onPointerUp={up}
-    onPointerCancel={() => { clearArmListeners.current?.(); clearArmListeners.current = null; drag.current = null }} onClick={e => e.stopPropagation()}
+  return createPortal(<mesh position={bounds.center} onPointerDown={down}
+    onPointerCancel={() => { clearPointerListeners.current?.(); clearPointerListeners.current = null; drag.current = null }} onClick={e => e.stopPropagation()}
     onPointerOver={e => { e.stopPropagation(); gl.domElement.style.cursor = kind.includes('Knob') ? 'ns-resize' : 'pointer' }}
     onPointerOut={() => { gl.domElement.style.cursor = '' }}>
     <boxGeometry args={[bounds.size.x, bounds.size.y, bounds.size.z]} />
@@ -233,7 +240,7 @@ export default function PlayerControls({ root }: { root: THREE.Object3D }) {
   const display = root.getObjectByName('LCD_Display')
   return <>{names.map(kind => {
     const object = root.getObjectByName(kind) as THREE.Mesh | THREE.Group | undefined
-    // Volume_Knob 是 Group，仍需挂载命中层（Control 内部会取子 mesh 计算命中框）
+    // 同时支持独立 Mesh 和包含子节点的控件 Group。
     return object ? <Control key={object.uuid} object={object} kind={kind} /> : null
   })}{display && <Display object={display} />}</>
 }
