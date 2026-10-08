@@ -313,7 +313,7 @@ function restoreVinylPlain(mesh: THREE.Mesh) {
 }
 
 function RoomModel({ mode }: { mode: 'day' | 'night' }) {
-  const { focus } = useCameraView()
+  const { focus, bounds: cameraBounds } = useCameraView()
   const { scene } = useGLTF(mode === 'night' ? '/room-night.glb' : '/room.glb')
 
   // 预加载地毯贴图（白色毛绒，平铺）
@@ -527,7 +527,7 @@ function RoomModel({ mode }: { mode: 'day' | 'night' }) {
     if (e.delta > 6) return
     let object: THREE.Object3D | null = e.object
     while (object && object.name !== 'CD_Player') object = object.parent
-    if (!object) return
+    if (!object || cameraBounds) return
     e.stopPropagation()
     object.updateWorldMatrix(true, true)
     const playerBounds = new THREE.Box3().setFromObject(object)
