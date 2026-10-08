@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, ReactNode, PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import catalog from '../public/music/catalog.json'
 import './music.css'
@@ -124,6 +124,35 @@ export function MusicUI({ shelfGuideActive = false, onDismissShelfGuide = () => 
   const cabinetActive = !!view.bounds && view.mode === 'cabinet'
   const [library, setLibrary] = useState(false)
   const [guideRect, setGuideRect] = useState({ x: 0, y: 0, width: 0, height: 0 })
+  const cabinetSwipe = useRef<{ pointerId: number; x: number; y: number } | null>(null)
+  const suppressSwipeClick = useRef(false)
+  const onCabinetPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return
+    if ((event.target as HTMLElement).closest('button, a, input')) return
+    cabinetSwipe.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+  const onCabinetPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const start = cabinetSwipe.current
+    if (!start || start.pointerId !== event.pointerId) return
+    cabinetSwipe.current = null
+    const dx = event.clientX - start.x
+    const dy = event.clientY - start.y
+    if (Math.abs(dx) < 42 || Math.abs(dx) <= Math.abs(dy) * 1.2) return
+    suppressSwipeClick.current = true
+    window.setTimeout(() => { suppressSwipeClick.current = false }, 0)
+    const last = Math.max(0, cabinetItems.length - 1)
+    m.setCabinetIndex(value => Math.max(0, Math.min(last, value + (dx < 0 ? 1 : -1))))
+  }
+  const onCabinetPointerCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (cabinetSwipe.current?.pointerId === event.pointerId) cabinetSwipe.current = null
+  }
+  const onCabinetClickCapture = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!suppressSwipeClick.current) return
+    event.preventDefault()
+    event.stopPropagation()
+    suppressSwipeClick.current = false
+  }
   useEffect(() => {
     const update = (event: Event) => setGuideRect((event as CustomEvent<typeof guideRect>).detail)
     window.addEventListener('shelf-guide-position', update)
@@ -159,7 +188,7 @@ export function MusicUI({ shelfGuideActive = false, onDismissShelfGuide = () => 
       </div>
       <div className="shelf-onboarding-target" style={{ left: guideRect.x, top: guideRect.y, width: guideRect.width, height: guideRect.height }} />
     </div>, document.body)}
-    {cabinetActive && <div className="cabinet-floating-panel">
+    {cabinetActive && <div className="cabinet-floating-panel" onPointerDown={onCabinetPointerDown} onPointerUp={onCabinetPointerUp} onPointerCancel={onCabinetPointerCancel} onClickCapture={onCabinetClickCapture}>
       <div className="cabinet-floating-nav">
         <button aria-label="上一张唱片" disabled={cabinetIndex === 0} onClick={() => m.setCabinetIndex(cabinetIndex - 1)}>‹</button>
         <span>{cabinetItems.length ? `${cabinetIndex + 1} / ${cabinetItems.length}` : '柜子空了'}</span>
