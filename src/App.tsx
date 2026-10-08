@@ -27,13 +27,15 @@ function LoadingScreen() {
       <style>{`
         .vr-loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;background:linear-gradient(170deg,#ffffff 0%,#eef4f2 100%);z-index:300}
         .vr-wrap{position:relative;width:136px;height:136px}
-        .vr-vinyl{position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle at 50% 50%,#1a1a1a 0 1px,#242424 1px 2px),radial-gradient(circle at 50% 50%,#181818,#212121);box-shadow:inset 0 0 12px rgba(0,0,0,.05);animation:vrspin 1.4s linear infinite}
-        .vr-vinyl::before{content:'';position:absolute;inset:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#c5c9d7,#292F42 55%,#646C85);box-shadow:inset 0 0 10px rgba(0,0,0,.12)}
-        .vr-vinyl::after{content:'';position:absolute;inset:58px;border-radius:50%;background:#31C27C;box-shadow:inset 0 0 4px rgba(255,255,255,.2)}
+        .vr-vinyl{position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle at 50% 50%,transparent 0 1px,rgba(210,165,0,.12) 1px 2px),radial-gradient(circle at 35% 28%,#fff34d,#ffe600 58%,#ffd500);box-shadow:inset 0 0 12px rgba(255,255,255,.35),0 6px 22px rgba(240,195,0,.12);animation:vrspin 1.4s linear infinite}
+        .vr-vinyl::before{content:'';position:absolute;inset:40px;border-radius:50%;background:linear-gradient(135deg,#5ae59b,#31c27c 38%,#00b894 68%,#31c27c);background-size:220% 220%;box-shadow:inset 0 0 10px rgba(255,255,255,.22);animation:vrgreen 3s ease-in-out infinite}
+        .vr-vinyl::after{content:'';position:absolute;inset:63px;border-radius:50%;background:#eaffb6;box-shadow:0 0 0 2px rgba(17,151,92,.16),inset 0 0 3px rgba(255,255,255,.6)}
         .vr-shine{position:absolute;inset:0;border-radius:50%;background:linear-gradient(120deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 42%);pointer-events:none}
         .vr-sparkles{position:absolute;inset:-16px;border-radius:50%;background:radial-gradient(circle at 14% 22%,rgba(255,206,110,.95) 0 2.5px,transparent 4px),radial-gradient(circle at 86% 14%,rgba(255,210,125,.75) 0 1.8px,transparent 3px),radial-gradient(circle at 22% 86%,rgba(255,214,130,.85) 0 2px,transparent 3.2px),radial-gradient(circle at 76% 72%,rgba(255,206,110,.9) 0 2.2px,transparent 3.5px),radial-gradient(circle at 50% 4%,rgba(255,220,150,.65) 0 1.4px,transparent 2.4px),radial-gradient(circle at 94% 48%,rgba(255,214,130,.75) 0 1.8px,transparent 3px),radial-gradient(circle at 36% 12%,rgba(255,216,140,.6) 0 1.4px,transparent 2.4px);animation:vrsparkle 1.8s ease-in-out infinite;pointer-events:none}
         @keyframes vrspin{to{transform:rotate(360deg)}}
+        @keyframes vrgreen{0%,100%{background-position:0% 50%;transform:scale(.96)}50%{background-position:100% 50%;transform:scale(1.04)}}
         @keyframes vrsparkle{0%,100%{opacity:.35}50%{opacity:1}}
+        @media(prefers-reduced-motion:reduce){.vr-vinyl,.vr-vinyl::before,.vr-sparkles{animation:none}}
         .vr-progress{width:200px;display:flex;flex-direction:column;gap:9px;align-items:center}
         .vr-progress-track{width:100%;height:6px;border-radius:999px;background:rgba(41,47,66,.12);overflow:hidden}
         .vr-progress-bar{height:100%;border-radius:999px;background:linear-gradient(90deg,#292F42,#646C85);transition:width .2s ease}
