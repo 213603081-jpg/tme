@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useProgress } from '@react-three/drei'
 import Scene from './Scene'
 import ProfilePage from './pages/ProfilePage'
@@ -21,11 +21,33 @@ function loadSkin(): Record<string, string> {
 // 加载动画：旋转唱片 + 真实加载进度
 function LoadingScreen() {
   const { active, progress } = useProgress()
-  if (!active) return null
+  const [visible, setVisible] = useState(() => active || progress < 100)
+  const [exiting, setExiting] = useState(false)
+  const shownAt = useRef(performance.now())
+  useEffect(() => {
+    if (active || progress < 100) {
+      if (!visible) {
+        shownAt.current = performance.now()
+        setVisible(true)
+      }
+      setExiting(false)
+      return
+    }
+    if (!visible) return
+    const settleDelay = Math.max(0, 420 - (performance.now() - shownAt.current))
+    let removeTimer: ReturnType<typeof setTimeout> | undefined
+    const settleTimer = setTimeout(() => {
+      setExiting(true)
+      removeTimer = setTimeout(() => setVisible(false), 260)
+    }, settleDelay)
+    return () => { clearTimeout(settleTimer); if (removeTimer) clearTimeout(removeTimer) }
+  }, [active, progress, visible])
+  if (!visible) return null
   return (
     <>
       <style>{`
-        .vr-loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;background:linear-gradient(170deg,#ffffff 0%,#eef4f2 100%);z-index:300}
+        .vr-loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;background:linear-gradient(170deg,#ffffff 0%,#eef4f2 100%);z-index:300;opacity:1;transition:opacity .26s ease;will-change:opacity}
+        .vr-loading.vr-loading-exit{opacity:0;pointer-events:none}
         .vr-wrap{position:relative;width:136px;height:136px}
         .vr-vinyl{position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle at 50% 50%,transparent 0 1px,rgba(210,165,0,.12) 1px 2px),radial-gradient(circle at 35% 28%,#fff34d,#ffe600 58%,#ffd500);box-shadow:inset 0 0 12px rgba(255,255,255,.35),0 6px 22px rgba(240,195,0,.12);animation:vrspin 1.4s linear infinite}
         .vr-vinyl::before{content:'';position:absolute;inset:40px;border-radius:50%;background:radial-gradient(ellipse at 24% 28%,#73eda8 0%,transparent 48%),radial-gradient(ellipse at 76% 72%,#00b99d 0%,transparent 55%),linear-gradient(135deg,#31c27c,#19c889 48%,#31c27c);background-size:160% 160%,180% 180%,100% 100%;box-shadow:inset 0 0 10px rgba(255,255,255,.22);animation:vrgreen 4.5s ease-in-out infinite}
@@ -47,7 +69,7 @@ function LoadingScreen() {
         .vr-progress-bar{height:100%;border-radius:999px;background:linear-gradient(90deg,#292F42,#646C85);transition:width .2s ease}
         .vr-progress-text{color:#292F42;font-size:12px;letter-spacing:.5px;font-variant-numeric:tabular-nums}
       `}</style>
-      <div className="vr-loading">
+      <div className={`vr-loading${exiting ? ' vr-loading-exit' : ''}`}>
         <div className="vr-wrap">
           <div className="vr-vinyl" />
           <div className="vr-sparkles" aria-hidden="true">
