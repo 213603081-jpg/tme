@@ -52,7 +52,7 @@ function Cover({ playlist, object, mode }: { playlist: Playlist; object: THREE.M
 
 export default function MusicScene({ root, mode }: { root: THREE.Object3D; mode: 'day' | 'night' }) {
   const m = useMusic()
-  const { focus } = useCameraView()
+  const { focus, bounds } = useCameraView()
   const playerBounds = useMemo(() => {
     const player = root.getObjectByName('CD_Player')
     if (!player) return null
@@ -162,7 +162,7 @@ export default function MusicScene({ root, mode }: { root: THREE.Object3D; mode:
   })
   return <>
     {/* Reliable camera-facing hitbox for entering player close view; removed once focused so controls remain clickable. */}
-    {!view.bounds && playerFocusTarget && <mesh
+    {!bounds && playerFocusTarget && <mesh
       position={[playerFocusTarget.center.x, playerFocusTarget.center.y, playerBounds!.max.z + 0.04]}
       onClick={e => { e.stopPropagation(); if (e.delta < 6 && playerBounds) focus(playerBounds.clone(), 'player') }}
     >
