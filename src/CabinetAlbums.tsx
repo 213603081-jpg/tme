@@ -101,7 +101,7 @@ export default function CabinetAlbums({ root }: { root: THREE.Object3D }) {
   }
   return <group position={[-0.19, 0.287, 0]} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
     {geometry && items.map((p, i) => <Book key={p.id} geometry={geometry} playlist={p} index={i} count={items.length} progress={progress} active={active} open={() => { if (!active) focus(); else if (!suppressed.current) { progress.current = i; setIndex(i) } }} />)}
-    {/* Keep the invisible cabinet hit target on the camera-facing side so the cabinet mesh cannot occlude raycasts. */}
-    <mesh position={[0, 0.15, 0.24]} onClick={e => { e.stopPropagation(); if (!active && e.delta < 6) focus() }}><boxGeometry args={[0.85, 0.5, 0.02]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>
+    {/* Only expose the focus hitbox in the panorama; while focused it would block album clicks. */}
+    {!active && <mesh position={[0, 0.15, 0.38]} onClick={e => { e.stopPropagation(); if (e.delta < 6) focus() }}><boxGeometry args={[0.85, 0.5, 0.02]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>}
   </group>
 }
