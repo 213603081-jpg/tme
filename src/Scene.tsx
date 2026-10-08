@@ -45,6 +45,11 @@ function isDrawerMesh(name: string): boolean {
   return name.startsWith('左抽屉') || name.startsWith('右抽屉')
 }
 
+// GLB exports may wrap the turntable record in a group and suffix the actual mesh.
+function isTurntableRecordMesh(name: string): boolean {
+  return name === 'CD_Record' || name === 'CD_Record_Mesh'
+}
+
 // 给墙面材质应用纯色（墙面只支持纯色）
 function applyWallColor(mm: THREE.MeshStandardMaterial, value: string) {
   if (value && value.startsWith('texture:')) value = '#aeb6bc' // 兜底残留的旧墙纸值
@@ -80,7 +85,7 @@ function applySkinToScene(
     const o = object as THREE.Mesh
     if (!o.isMesh || !o.material) return
     // 按稳定的模型节点识别唱片，避免替换材质后丢失名称而无法再次切换。
-    if (o.name === 'CD_Record' || o.name === 'VinylRecord') {
+    if (isTurntableRecordMesh(o.name) || o.name === 'VinylRecord') {
       const value = colors.vinyl === 'flow' ? 'texture:vinyl_flow' : colors.vinyl
       if (value === 'texture:vinyl_black' || (value && !value.startsWith('texture:'))) {
         restoreVinylPlain(o)
@@ -364,7 +369,7 @@ function RoomModel({ mode }: { mode: 'day' | 'night' }) {
           mat.emissive.set('#e1ebff')
           mat.emissiveIntensity = 1.3
         }
-        if (mode === 'night' && m.name === 'CD_Record') {
+        if (mode === 'night' && isTurntableRecordMesh(m.name)) {
           mat.emissive.set('#8298c8')
           mat.emissiveIntensity = 0.12
         }
@@ -460,7 +465,7 @@ function RoomModel({ mode }: { mode: 'day' | 'night' }) {
           mat.color.set(skin.vinyl && !skin.vinyl.startsWith('texture:') ? skin.vinyl : '#1a1a1a')
           mat.needsUpdate = true
         }
-        if (mat.name === 'Vinyl_Traditional_Black' && m.name === 'CD_Record') {
+        if (mat.name === 'Vinyl_Traditional_Black' && isTurntableRecordMesh(m.name)) {
           mat = mat.clone()
           m.material = mat
           mat.color.set(skin.vinyl && !skin.vinyl.startsWith('texture:') ? skin.vinyl : '#1a1a1a')
