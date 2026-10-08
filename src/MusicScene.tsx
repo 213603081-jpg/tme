@@ -59,6 +59,10 @@ export default function MusicScene({ root, mode }: { root: THREE.Object3D; mode:
     player.updateWorldMatrix(true, true)
     return new THREE.Box3().setFromObject(player)
   }, [root])
+  const playerFocusTarget = useMemo(() => {
+    if (!playerBounds) return null
+    return { center: playerBounds.getCenter(new THREE.Vector3()), size: playerBounds.getSize(new THREE.Vector3()) }
+  }, [playerBounds])
   useEffect(() => {
     if (m.transition && playerBounds) focus(playerBounds.clone(), 'player')
     // 每次发起换片时重新对准唱片机，包括从柜子近景选片。
@@ -157,6 +161,14 @@ export default function MusicScene({ root, mode }: { root: THREE.Object3D; mode:
     }
   })
   return <>
+    {/* Reliable camera-facing hitbox for entering player close view; removed once focused so controls remain clickable. */}
+    {!view.bounds && playerFocusTarget && <mesh
+      position={[playerFocusTarget.center.x, playerFocusTarget.center.y, playerBounds!.max.z + 0.04]}
+      onClick={e => { e.stopPropagation(); if (e.delta < 6 && playerBounds) focus(playerBounds.clone(), 'player') }}
+    >
+      <boxGeometry args={[Math.max(playerFocusTarget.size.x, 0.1), Math.max(playerFocusTarget.size.y, 0.1), 0.02]} />
+      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+    </mesh>}
     <PlayerControls root={root} />
     <CabinetAlbums root={root} />
     {slots.map(slot => <Cover key={slot.object.uuid} {...slot} mode={mode} />)}
