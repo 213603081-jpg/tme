@@ -52,17 +52,13 @@ function Cover({ playlist, object, mode }: { playlist: Playlist; object: THREE.M
 
 export default function MusicScene({ root, mode }: { root: THREE.Object3D; mode: 'day' | 'night' }) {
   const m = useMusic()
-  const { focus, bounds } = useCameraView()
+  const { focus } = useCameraView()
   const playerBounds = useMemo(() => {
     const player = root.getObjectByName('CD_Player')
     if (!player) return null
     player.updateWorldMatrix(true, true)
     return new THREE.Box3().setFromObject(player)
   }, [root])
-  const playerFocusTarget = useMemo(() => {
-    if (!playerBounds) return null
-    return { center: playerBounds.getCenter(new THREE.Vector3()), size: playerBounds.getSize(new THREE.Vector3()) }
-  }, [playerBounds])
   useEffect(() => {
     if (m.transition && playerBounds) focus(playerBounds.clone(), 'player')
     // 每次发起换片时重新对准唱片机，包括从柜子近景选片。
@@ -138,14 +134,14 @@ export default function MusicScene({ root, mode }: { root: THREE.Object3D; mode:
     record.position.copy(base.position); record.scale.copy(base.scale)
     if (m.switching) {
       const phase = recordPhase(m.swapStartedAt)
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       record.visible = (phase.newRecord || !!m.outgoing) && !(phase.seconds >= 2.05 && phase.seconds < 2.15)
-      if (!reduced) {
-        // 保持唱片尺寸：沿主轴抬离，再向左取走；新唱片从右侧水平送入后落到主轴。
-        record.position.y += phase.newRecord ? 0.13 * (1 - phase.lowerNew) : 0.13 * phase.liftOld
-        record.position.x += phase.newRecord ? 0.55 * (1 - phase.insertNew) : -0.55 * phase.removeOld
-        record.rotation.z = base.rotation.z + (phase.newRecord ? -0.12 * (1 - phase.insertNew) : 0.12 * phase.removeOld)
-      }
+      // Keep the vinyl at its original size: lift it off the spindle, slide it
+      // clearly out to the left, then bring the next disc in from the right.
+      // Reduced-motion mode shortens the travel without removing the swap.
+      const motionScale = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.65 : 1
+      record.position.y += (phase.newRecord ? 0.24 * (1 - phase.lowerNew) : 0.24 * phase.liftOld) * motionScale
+      record.position.x += (phase.newRecord ? 1.05 * (1 - phase.insertNew) : -1.05 * phase.removeOld) * motionScale
+      record.rotation.z = base.rotation.z + (phase.newRecord ? -0.18 * (1 - phase.insertNew) : 0.18 * phase.removeOld) * motionScale
       if (label.current) {
         const texture = phase.newRecord ? incomingTexture : outgoingTexture
         if (label.current.map !== texture) { label.current.map = texture; label.current.needsUpdate = true }
@@ -161,17 +157,10 @@ export default function MusicScene({ root, mode }: { root: THREE.Object3D; mode:
     }
   })
   return <>
-    {/* Reliable camera-facing hitbox for entering player close view; removed once focused so controls remain clickable. */}
-    {!bounds && playerFocusTarget && <mesh
-      position={[playerFocusTarget.center.x, playerFocusTarget.center.y, playerBounds!.max.z + 0.04]}
-      onClick={e => { if (e.delta < 6 && playerBounds) focus(playerBounds.clone(), 'player') }}
-    >
-      <boxGeometry args={[Math.max(playerFocusTarget.size.x, 0.1), Math.max(playerFocusTarget.size.y, 0.1), 0.02]} />
-      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-    </mesh>}
     <PlayerControls root={root} />
     <CabinetAlbums root={root} />
     {slots.map(slot => <Cover key={slot.object.uuid} {...slot} mode={mode} />)}
     {m.current && record && createPortal(<mesh position={[0, 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[0.075, 48]} /><meshPhysicalMaterial ref={label} map={incomingTexture} color={[0.78, 0.78, 0.78]} roughness={0.9} metalness={0} specularIntensity={0.1} toneMapped={false} /></mesh>, record)}
   </>
 }
+
